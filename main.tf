@@ -33,9 +33,8 @@ resource "aws_autoscaling_group" "backend_asg" {
   ]
 
   launch_template {
-    id      = "lt-021b4df2066047be8"
-    version = "$Latest"
-  }
+  id      = aws_launch_template.backend_lt.id
+  version = "$Latest"
 }
 
 resource "aws_launch_template" "backend_lt" {
