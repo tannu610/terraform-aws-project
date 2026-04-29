@@ -29,8 +29,8 @@ resource "aws_autoscaling_group" "backend_asg" {
   health_check_grace_period = 300
 
   target_group_arns = [
-    "arn:aws:elasticloadbalancing:eu-north-1:533267295128:targetgroup/backend-tg/723478a41669da30"
-  ]
+  aws_lb_target_group.backend_tg.arn
+]
 
   launch_template {
   id      = aws_launch_template.backend_lt.id
