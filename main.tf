@@ -15,10 +15,10 @@ resource "aws_instance" "backend" {
 }
 
 resource "aws_autoscaling_group" "backend_asg" {
-  name               = "backend-asg"
-  min_size           = 1
-  max_size           = 3
-  desired_capacity   = 1
+  name             = "backend-asg"
+  min_size         = 1
+  max_size         = 3
+  desired_capacity = 1
 
   vpc_zone_identifier = [
     "subnet-09798a12b702c62f3",
@@ -68,12 +68,12 @@ resource "aws_lb_target_group" "backend_tg" {
   target_type = "instance"
 
   health_check {
-  path                = "/"
-  protocol            = "HTTP"
-  matcher             = "200"
-  healthy_threshold   = 5
-  unhealthy_threshold = 2
-}
+    path                = "/"
+    protocol            = "HTTP"
+    matcher             = "200"
+    healthy_threshold   = 5
+    unhealthy_threshold = 2
+  }
 }
 
 resource "aws_autoscaling_policy" "backend_scaling_policy" {
@@ -82,7 +82,7 @@ resource "aws_autoscaling_policy" "backend_scaling_policy" {
   policy_type            = "TargetTrackingScaling"
 
   target_tracking_configuration {
-    target_value = 100   # requests per target (we can tune later)
+    target_value = 100 # requests per target (we can tune later)
 
     predefined_metric_specification {
       predefined_metric_type = "ALBRequestCountPerTarget"
@@ -99,14 +99,14 @@ resource "aws_cloudwatch_dashboard" "backend_dashboard" {
     widgets = [
 
       {
-        type = "metric"
-        x    = 0
-        y    = 0
+        type   = "metric"
+        x      = 0
+        y      = 0
         width  = 12
         height = 6
 
         properties = {
-          title = "ALB Request Count"
+          title  = "ALB Request Count"
           region = "eu-north-1"
           metrics = [
             ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", "app/tannu-alb/d7dc8ac422bf873d"]
@@ -117,14 +117,14 @@ resource "aws_cloudwatch_dashboard" "backend_dashboard" {
       },
 
       {
-        type = "metric"
-        x    = 12
-        y    = 0
+        type   = "metric"
+        x      = 12
+        y      = 0
         width  = 12
         height = 6
 
         properties = {
-          title = "Healthy Targets"
+          title  = "Healthy Targets"
           region = "eu-north-1"
           metrics = [
             ["AWS/ApplicationELB", "HealthyHostCount", "TargetGroup", "targetgroup/backend-tg/723478a41669da30"]
@@ -135,14 +135,14 @@ resource "aws_cloudwatch_dashboard" "backend_dashboard" {
       },
 
       {
-        type = "metric"
-        x    = 0
-        y    = 6
+        type   = "metric"
+        x      = 0
+        y      = 6
         width  = 12
         height = 6
 
         properties = {
-          title = "ASG Instances In Service"
+          title  = "ASG Instances In Service"
           region = "eu-north-1"
           metrics = [
             ["AWS/AutoScaling", "GroupInServiceInstances", "AutoScalingGroupName", "backend-asg"]
