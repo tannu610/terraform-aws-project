@@ -2,47 +2,9 @@ provider "aws" {
   region = "eu-north-1"
 }
 
-<<<<<<< HEAD
-resource "aws_instance" "backend" {
-  ami                    = "ami-080254318c2d8932f"
-  instance_type          = "t3.micro"
-  subnet_id              = "subnet-09798a12b702c62f3"
-  key_name               = "tannu-key"
-  vpc_security_group_ids = ["sg-07e7495f3d026eda0"]
-
-  tags = {
-    Name = "backend-server"
-  }
-}
-
-resource "aws_autoscaling_group" "backend_asg" {
-  name             = "backend-asg"
-  min_size         = 1
-  max_size         = 3
-  desired_capacity = 1
-
-  vpc_zone_identifier = [
-    "subnet-09798a12b702c62f3",
-    "subnet-09e5479b3a55c345d"
-  ]
-
-  health_check_type         = "EC2"
-  health_check_grace_period = 300
-
-  target_group_arns = [
-  aws_lb_target_group.backend_tg.arn
-]
-
-  launch_template {
-  id      = aws_launch_template.backend_lt.id
-  version = "$Latest"
-}
-
-=======
 # -----------------------------
 # Launch Template
 # -----------------------------
->>>>>>> be99a64 (updated terraform config)
 resource "aws_launch_template" "backend_lt" {
   name_prefix   = "backend-lt-"
   image_id      = "ami-080254318c2d8932f"
@@ -51,7 +13,26 @@ resource "aws_launch_template" "backend_lt" {
 
   vpc_security_group_ids = ["sg-07e7495f3d026eda0"]
 
-  user_data = "IyEvYmluL2Jhc2gKYXB0IHVwZGF0ZSAteQphcHQgaW5zdGFsbCAteSBub2RlanMgbnBtCgpjYXQgPDxFT0YgPiAvaG9tZS91YnVudHUvYXBwLmpzCmNvbnN0IGh0dHAgPSByZXF1aXJlKCdodHRwJyk7CmNvbnN0IG9zID0gcmVxdWlyZSgnb3MnKTsKCmNvbnN0IHNlcnZlciA9IGh0dHAuY3JlYXRlU2VydmVyKChyZXEsIHJlcykgPT4gewogIHJlcy5zZXRIZWFkZXIoJ0NvbnRlbnQtVHlwZScsICd0ZXh0L3BsYWluOyBjaGFyc2V0PXV0Zi04Jyk7CiAgcmVzLmVuZCgnSGVsbG8gZnJvbSAnICsgb3MuaG9zdG5hbWUoKSk7Cn0pOwoKc2VydmVyLmxpc3Rlbig4MCwgJzAuMC4wLjAnKTsKRU9GCgpub2RlIC9ob21lL3VidW50dS9hcHAuanM="
+  user_data = base64encode(<<-EOF
+              #!/bin/bash
+              apt update -y
+              apt install -y nodejs npm
+
+              cat <<EOT > /home/ubuntu/app.js
+              const http = require('http');
+              const os = require('os');
+
+              const server = http.createServer((req, res) => {
+                res.writeHead(200, {'Content-Type': 'text/plain'});
+                res.end('Hello from ' + os.hostname());
+              });
+
+              server.listen(80, '0.0.0.0');
+              EOT
+
+              node /home/ubuntu/app.js
+              EOF
+  )
 
   tag_specifications {
     resource_type = "instance"
@@ -76,8 +57,10 @@ resource "aws_lb_target_group" "backend_tg" {
     path                = "/"
     protocol            = "HTTP"
     matcher             = "200"
-    healthy_threshold   = 5
+    healthy_threshold   = 3
     unhealthy_threshold = 2
+    interval            = 30
+    timeout             = 5
   }
 }
 
